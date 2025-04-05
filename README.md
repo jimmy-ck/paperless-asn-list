@@ -21,8 +21,8 @@ This Python script interacts with the [Paperless-ngx API](https://docs.paperless
 
 1. Clone this repository:
     ```
-    git clone <repository-url>
-    cd <repository-folder>
+    git clone https://github.com/jimmy-ck/paperless-asn-list.git
+    cd paperless-asn-list
     ```
 
 2. Create and activate a virtual environment:
