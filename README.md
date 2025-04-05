@@ -4,7 +4,7 @@ This Python script interacts with the [Paperless-ngx API](https://docs.paperless
 
 ## Features
 
-- Fetches documents from Paperless-ngx within a specified ASN range.
+- Fetches documents from a selfhosted Paperless-ngx instance within a specified ASN range.
 - Groups documents by a custom field (e.g., "StorageBox").
 - Supports secondary grouping by either correspondents or ASNs.
 - Sorts groups alphabetically (case-insensitive) and ASNs numerically.
@@ -55,19 +55,26 @@ The following parameters can be adjusted in the script:
 | Parameter                  | Description                                                                 | Default Value     |
 |----------------------------|-----------------------------------------------------------------------------|-------------------|
 | `ASN_FROM`                 | Minimum ASN value to query documents from                                   | 1                 |
-| `ASN_TO`                   | Maximum ASN value to query documents up to                                  | 671               |
-| `CUSTOM_FIELD_ID`          | ID of the custom field used for primary grouping (e.g., "StorageBox")      | 3                 |
-| `SECONDARY_GROUP_BY_FIELD` | Field used for secondary grouping (`"Correspondent"` or `"ASN"`)            | `"Correspondent"` |
+| `ASN_TO`                   | Maximum ASN value to query documents up to                                  | 999               |
+| `CUSTOM_FIELD_ID`          | ID of the custom field used for primary grouping (e.g., "StorageBox")       | 3                 |
 
 ## Output
 
-The script generates a tab-separated CSV file with the following columns:
+The script generates two tab-separated CSV files with the following columns.
 
-1. **StorageBox**: The custom field label (e.g., "Box 1").
+Grouped by ASN:
+1. **StorageBox**: Grouped and sorted case-insensitive alphabetically. The custom field label (e.g., "Box 1").
 2. **ASN**: Archive Serial Number of the document.
 3. **Correspondent**: Name of the correspondent associated with the document.
 4. **Title**: Title of the document.
 5. **Date**: Creation date of the document.
+
+Grouped by correspondents:
+1. **StorageBox**: Grouped and sorted case-insensitive alphabetically. The custom field label (e.g., "Box 1").
+2. **Correspondent**: Grouped. Name of the correspondent associated with the document. Sorted case-insensitive alphabetically.
+3. **Date**: Creation date of the document. Sorted old to new.
+4. **Title**: Title of the document.
+5. **ASN**: Archive Serial Number of the document.
 
 The CSV filename is dynamically generated based on the timestamp, ASN range, and grouping logic, e.g.:
     ```
@@ -79,11 +86,11 @@ The CSV filename is dynamically generated based on the timestamp, ASN range, and
 #### Grouped by StorageBox → Correspondent → ASN:
 | StorageBox | ASN  | Correspondent  | Title         | Date       |
 |----------|------|----------------|---------------|------------|
-| Box 1    | 102  | Alice Corp     | Receipt Feb   | 2025-02-01 |
-| Box 1    | 101  | Alice Corp     | Invoice Jan   | 2025-01-01 |
-| Box 1    | 103  | Bob Inc.       | Contract Mar  | 2025-03-01 |
-| Box 2    | 105  | Charlie Ltd.   | Report Apr    | 2025-04-01 |
-| Box 2    | 104  | Charlie Ltd.   | Memo May      | 2025-05-01 |
+| Box 1    | 1    | Alice Corp     | Receipt Feb   | 2025-02-01 |
+| Box 1    | 2    | Alice Corp     | Invoice Jan   | 2025-01-01 |
+| Box 1    | 3    | Bob Inc.       | Contract Mar  | 2025-03-01 |
+| Box 2    | 4    | Charlie Ltd.   | Report Apr    | 2025-04-01 |
+| Box 2    | 5    | Charlie Ltd.   | Memo May      | 2025-05-01 |
 
 ## Notes
 
