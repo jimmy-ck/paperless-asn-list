@@ -148,20 +148,26 @@ def export_correspondents_list(grouped_by_custom_field, correspondents, asn_from
     Exports a list of all correspondents with their documents, sorted by correspondent and date.
     """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_grouped_by_Correspondent_ASN_{asn_from}-{asn_to}.csv"
+    
+    # Get all documents and group by correspondent
+    all_docs = []
+    for group_key, docs in grouped_by_custom_field.items():
+        for doc in docs:
+            doc['storage_box'] = group_key  # Add storage box info to document
+            all_docs.append(doc)
+    
+    # Calculate actual min and max ASN from the documents
+    asn_values = [int(doc["archive_serial_number"]) for doc in all_docs]
+    actual_min_asn = min(asn_values) if asn_values else asn_from
+    actual_max_asn = max(asn_values) if asn_values else asn_to
+    
+    filename = f"{timestamp}_grouped_by_Correspondent_ASN_{actual_min_asn}-{actual_max_asn}.csv"
     
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, delimiter="\t")
         
         # Write header row
         writer.writerow(["Correspondent", "Date", "Title", "StorageBox", "ASN"])
-        
-        # Get all documents and group by correspondent
-        all_docs = []
-        for group_key, docs in grouped_by_custom_field.items():
-            for doc in docs:
-                doc['storage_box'] = group_key  # Add storage box info to document
-                all_docs.append(doc)
         
         # Group by correspondent
         correspondent_groups = {}
@@ -189,6 +195,7 @@ def export_correspondents_list(grouped_by_custom_field, correspondents, asn_from
     
     print(f"Correspondents list exported to {filename}")
     return filename
+
 
 def export_storage_box_by_correspondent(grouped_by_custom_field, correspondents, asn_from, asn_to):
     """
