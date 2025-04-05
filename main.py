@@ -143,37 +143,6 @@ def group_within_custom_field(documents, correspondents, group_by):
 
     return grouped_documents
 
-
-def print_grouped_documents(grouped_by_custom_field, correspondents, secondary_group_by):
-    """
-    Prints grouped documents based on primary and secondary grouping criteria.
-
-    Args:
-        grouped_by_custom_field (dict): Documents grouped by the primary custom field.
-        correspondents (dict): Mapping of correspondent IDs to names.
-        secondary_group_by (str): Field used for secondary grouping. Options: "Correspondent", "ASN".
-    """
-    for group_key, docs in grouped_by_custom_field.items():
-        print(f"\n{group_key}")  # Print Lagerort or other custom field label
-
-        if secondary_group_by == "ASN":
-            # Sort and print all documents directly by ASN
-            docs.sort(key=lambda doc: int(doc["archive_serial_number"]))
-            for doc in docs:
-                # Use the correspondent name if available; otherwise, print "Unknown"
-                correspondent_name = correspondents.get(doc["correspondent"], "Unknown")
-                print(f"ASN: {doc['archive_serial_number']} | Correspondent: {correspondent_name} | Title: {doc['title']} | Date: {doc['created_date']}")
-        
-        elif secondary_group_by == "Correspondent":
-            # Group by Correspondent within Lagerort
-            grouped_within_custom_field = group_within_custom_field(docs, correspondents, secondary_group_by)
-            for sub_group_key, sub_docs in grouped_within_custom_field.items():
-                print(f"\n{secondary_group_by}: {sub_group_key}")  # Print Correspondent name
-                sub_docs.sort(key=lambda doc: int(doc["archive_serial_number"]))
-                for doc in sub_docs:
-                    print(f"ASN: {doc['archive_serial_number']} | Title: {doc['title']} | Date: {doc['created_date']}")
-
-
 def export_to_csv(grouped_by_custom_field, correspondents, secondary_group_by, asn_from, asn_to):
     """
     Exports grouped data to a tab-separated CSV file.
