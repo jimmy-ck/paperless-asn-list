@@ -11,7 +11,7 @@ This Python script interacts with the [Paperless-ngx API](https://docs.paperless
 
 ## Prerequisites
 
-- This script currently assumes a prepopulated custom data field in your Paperless-ngx instance configured as field type `select` (please refer to [Paperless-ngx Basic Usage](https://docs.paperless-ngx.com/usage/#custom-fields))
+- **This script currently assumes a prepopulated custom data field in your Paperless-ngx instance configured as field type `select`, which is used to document physical storage location of documents** (please refer to [Paperless-ngx Basic Usage](https://docs.paperless-ngx.com/usage/#custom-fields))
 - Python 3.6 or later
 - Paperless-ngx instance with API access enabled
 - Virtual environment (`venv`) for dependency management
@@ -38,7 +38,7 @@ This Python script interacts with the [Paperless-ngx API](https://docs.paperless
 4. Create a `credentials.py` file (excluded from Git):
     ```
     # credentials.py
-    API_URL = "http://your-paperless-instance:7000/api"
+    API_URL = "http://your-paperless-instance:port-number/api"
     API_TOKEN = "your_api_token_here"
     ```
 
@@ -57,30 +57,29 @@ The following parameters can be adjusted in the script:
 | `ASN_TO`                   | Maximum ASN value to query documents up to                                  | 999               |
 | `CUSTOM_FIELD_ID`          | ID of the custom field used for primary grouping (e.g., "StorageBox")       | 3                 |
 
-## Output
+## Output lists
 
 This script generates three tab-separated CSV files with the following columns.
-The idea behind these lists is to physically attach it to containers/boxes of documents. In case of a breakdown of your Paperless-ngx instance you should be able to look up where a specific document resides in this box – all analogue. 
+The idea behind these lists is to physically attach it to containers/boxes of documents. In case of a breakdown of your Paperless-ngx instance you should be able to look up where a specific document resides in this box – all analogue.
 
-All CSV filenames are dynamically generated based on the timestamp, ASN range, and grouping logic, e.g.:
-    ```
-    20250405_161700_StorageBox_grouped_by_Correspondent_ASN_1-671.csv
-    ```
-
-
-### Grouped and sorted by: correspondents → date to look up storage box and ASN
-1. **Correspondent**: Grouped and sorted case-insensitive alphabetically. Name of the correspondent associated with the document.
-2. **Date**: Creation date of the document. Sorted old to new.
-3. **Title**: Title of the document.
-4. **StorageBox**: The custom field label (e.g., "Box 1").
-5. **ASN**: Archive Serial Number of the document.
+### Correspondents → to look up storage box and ASN
 
 > In which box is my document? And what is it's ASN = location? 
+
+Outputs one list for all correspondents assigned to documents which have an ASN: `20250405_161700_grouped_by_Correspondent_ASN_1-275.csv`
+
+
 
 This list allows you to identify a document of interest by scrolling through the correspondents list, narrowing down the date and looking up the storage box where you document resides in. Noting the ASN you can directly find it in this specific box, since it should physically be sorted by ASN.
 
 #### Example output
 *"↓" are displayed in doc for illustrative purposes only*
+
+1. **Correspondent**: Grouped and sorted case-insensitive alphabetically. Name of the correspondent associated with the document.
+2. **Date**: Creation date of the document. Sorted old to new.
+3. **Title**: Title of the document.
+4. **StorageBox**: The custom field label (e.g., "Box 1").
+5. **ASN**: Archive Serial Number of the document.
 
 | Correspondent ↓ | Date ↓     | Title         | StorageBox | ASN  |
 |-----------------|------------|---------------|------------|------|
@@ -91,19 +90,27 @@ This list allows you to identify a document of interest by scrolling through the
 | Charlie Ltd.    | 2025-04-01 | Report Apr    | Box 2      | 3    |
 | Charlie Ltd.    | 2025-05-01 | Memo May      | Box 2      | 5    |
 
-### Grouped and sorted by: storage box → correspondents → date to look up ASN in a specific storage box
+### Storage box (correspondents) → to look up ASN in a specific storage box
+
+> My document is in this box: What is the document's ASN = location?
+
+Outputs $n$ lists for $n$ storage boxes.
+```
+20250405_161700_Box1_grouped_by_Correspondent_ASN_1-123.csv
+20250405_161700_Box2_grouped_by_Correspondent_ASN_123-255.csv
+20250405_161700_Box3_grouped_by_Correspondent_ASN_256-275.csv
+```
+
+These lists allow you to identify a document of interest which is known to be in the corresponding box by scrolling through the correspondents list, narrowing down the date and looking up the ASN of your document. Since your box should physically be sorted by ASN it is easy to locate the document.
+
+#### Example output
+*"↓" are displayed in doc for illustrative purposes only*
+
 1. **StorageBox**: Grouped and sorted case-insensitive alphabetically. The custom field label (e.g., "Box 1").
 2. **Correspondent**: Grouped and sorted case-insensitive alphabetically. Name of the correspondent associated with the document.
 3. **Date**: Creation date of the document. Sorted old to new.
 4. **Title**: Title of the document.
 5. **ASN**: Archive Serial Number of the document.
-
-> My document is in this box: What is it's ASN = location?
-
-This list allows you to identify a document of interest which is known to be in this box by scrolling through the correspondents list, narrowing down the date and looking up the ASN of your document. Since your box should physically be sorted by ASN it should be easy to locate the document.
-
-#### Example output
-*"↓" are displayed in doc for illustrative purposes only*
 
 | StorageBox ↓ | Correspondent ↓ | Date ↓     | Title         | ASN |
 |--------------|-----------------|------------|---------------|-----|
@@ -114,19 +121,26 @@ This list allows you to identify a document of interest which is known to be in 
 | Box 2        | Charlie Ltd.    | 2025-04-01 | Report Apr    | 3   |
 | Box 2        | Charlie Ltd.    | 2025-05-01 | Memo May      | 5   |
 
-### Grouped and sorted by: storage box → ASN
+### Storage box (ASN) → to see whats in a specific box
+> What is in this box? 
+
+Outputs $n$ lists for $n$ storage boxes.
+```
+20250405_161700_Box1_grouped_by_ASN_1-123.csv
+20250405_161700_Box2_grouped_by_ASN_123-255.csv
+20250405_161700_Box3_grouped_by_ASN_256-275.csv
+```
+
+This list is a simple ASN-sorted list of a boxes content. It just reflects the physical sorting of the actual box.
+
+#### Example output
+*"↓" are displayed in doc for illustrative purposes only*
+
 1. **StorageBox**: Grouped and sorted case-insensitive alphabetically. The custom field label (e.g., "Box 1").
 2. **ASN**: Archive Serial Number of the document. Sorted ascending.
 3. **Correspondent**: Name of the correspondent associated with the document.
 4. **Title**: Title of the document.
 5. **Date**: Creation date of the document.
-
-> What is in this box? 
-
-This list is a simple ASN-sorted (synced to reality) list of a boxes content.
-
-#### Example output
-*"↓" are displayed in doc for illustrative purposes only*
 
 | StorageBox ↓ | ASN ↓ | Correspondent  | Title         | Date       |
 |--------------|-------|----------------|---------------|------------|
@@ -136,10 +150,6 @@ This list is a simple ASN-sorted (synced to reality) list of a boxes content.
 | Box 2        | 3     | Charlie Ltd.   | Report Apr    | 2025-04-01 |
 | Box 2        | 5     | Charlie Ltd.   | Memo May      | 2025-05-01 |
 | Box 2        | 6     | Alice Corp     | Invoice Feb   | 2025-03-01 |
-
-## Notes
-
-Ensure that your Paperless-ngx instance is accessible via the provided API URL.
 
 ## License
 

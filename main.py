@@ -143,93 +143,167 @@ def group_within_custom_field(documents, correspondents, group_by):
 
     return grouped_documents
 
-def export_to_csv(grouped_by_custom_field, correspondents, secondary_group_by, asn_from, asn_to):
+def export_correspondents_list(grouped_by_custom_field, correspondents, asn_from, asn_to):
     """
-    Exports grouped data to a tab-separated CSV file.
-
-    Args:
-        grouped_by_custom_field (dict): Documents grouped by the primary custom field.
-        correspondents (dict): Mapping of correspondent IDs to names.
-        secondary_group_by (str): Field used for secondary grouping. Options: "Correspondent", "ASN".
-        asn_from (int): Minimum ASN value.
-        asn_to (int): Maximum ASN value.
-    
-    Returns:
-        str: Filename of the exported CSV file.
+    Exports a list of all correspondents with their documents, sorted by correspondent and date.
     """
-    # Generate a dynamic filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{timestamp}_Lagerort_grouped_by_{secondary_group_by}_ASN_{asn_from}-{asn_to}.csv"
-
+    filename = f"{timestamp}_grouped_by_Correspondent_ASN_{asn_from}-{asn_to}.csv"
+    
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, delimiter="\t")
-
-        # Sort Lagerort groups alphabetically (case-insensitive) and iterate
-        for group_key in sorted(grouped_by_custom_field.keys(), key=lambda x: x.lower()):
-            docs = grouped_by_custom_field[group_key]
-
-            if secondary_group_by == "ASN":
-                # Write header row
-                writer.writerow(["Lagerort", "ASN", "Correspondent", "Title", "Date"])
-                
-                # Sort documents by ASN
-                docs.sort(key=lambda doc: int(doc["archive_serial_number"]))
-                for doc in docs:
-                    correspondent_name = correspondents.get(doc["correspondent"], "Unknown")
-                    writer.writerow([
-                        group_key,
-                        doc["archive_serial_number"],
-                        correspondent_name,
-                        doc["title"],
-                        doc["created_date"]
-                    ])
-            elif secondary_group_by == "Correspondent":
-                # Write header row
-                writer.writerow(["Lagerort", "Correspondent", "Date", "Title", "ASN"])
-
-                # Group documents by Correspondent within Lagerort
-                grouped_within_custom_field = group_within_custom_field(docs, correspondents, secondary_group_by)
-
-                # Sort correspondent groups alphabetically (case-insensitive)
-                for sub_group_key in sorted(grouped_within_custom_field.keys(), key=lambda x: x.lower()):
-                    sub_docs = grouped_within_custom_field[sub_group_key]
-
-                    # Sort documents within each correspondent group by created date
-                    sub_docs.sort(key=lambda doc: doc["created_date"])
-                    
-                    for doc in sub_docs:
-                        writer.writerow([
-                            group_key,
-                            sub_group_key,  # Correspondent name
-                            doc["created_date"],
-                            doc["title"],
-                            doc["archive_serial_number"]
-                        ])
-
-    print(f"Data exported to {filename}")
+        
+        # Write header row
+        writer.writerow(["Correspondent", "Date", "Title", "StorageBox", "ASN"])
+        
+        # Get all documents and group by correspondent
+        all_docs = []
+        for group_key, docs in grouped_by_custom_field.items():
+            for doc in docs:
+                doc['storage_box'] = group_key  # Add storage box info to document
+                all_docs.append(doc)
+        
+        # Group by correspondent
+        correspondent_groups = {}
+        for doc in all_docs:
+            corr_name = correspondents.get(doc["correspondent"], "Unknown")
+            if corr_name not in correspondent_groups:
+                correspondent_groups[corr_name] = []
+            correspondent_groups[corr_name].append(doc)
+        
+        # Sort correspondents alphabetically (case-insensitive)
+        for corr_name in sorted(correspondent_groups.keys(), key=lambda x: x.lower()):
+            docs = correspondent_groups[corr_name]
+            
+            # Sort by date (ascending)
+            docs.sort(key=lambda doc: doc["created_date"])
+            
+            for doc in docs:
+                writer.writerow([
+                    corr_name,
+                    doc["created_date"],
+                    doc["title"],
+                    doc['storage_box'],
+                    doc["archive_serial_number"]
+                ])
+    
+    print(f"Correspondents list exported to {filename}")
     return filename
 
+def export_storage_box_by_correspondent(grouped_by_custom_field, correspondents, asn_from, asn_to):
+    """
+    Exports one list per storage box, grouped by correspondent and sorted by date.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filenames = []
+    
+    # Sort storage boxes alphabetically (case-insensitive)
+    for storage_box in sorted(grouped_by_custom_field.keys(), key=lambda x: x.lower()):
+        docs = grouped_by_custom_field[storage_box]
+        
+        # Find min and max ASN in this storage box
+        min_asn = min([int(doc["archive_serial_number"]) for doc in docs])
+        max_asn = max([int(doc["archive_serial_number"]) for doc in docs])
+        
+        filename = f"{timestamp}_{storage_box}_grouped_by_Correspondent_ASN_{min_asn}-{max_asn}.csv"
+        
+        with open(filename, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file, delimiter="\t")
+            
+            # Write header row
+            writer.writerow(["StorageBox", "Correspondent", "Date", "Title", "ASN"])
+            
+            # Group by correspondent
+            correspondent_groups = {}
+            for doc in docs:
+                corr_name = correspondents.get(doc["correspondent"], "Unknown")
+                if corr_name not in correspondent_groups:
+                    correspondent_groups[corr_name] = []
+                correspondent_groups[corr_name].append(doc)
+            
+            # Sort correspondents alphabetically (case-insensitive)
+            for corr_name in sorted(correspondent_groups.keys(), key=lambda x: x.lower()):
+                corr_docs = correspondent_groups[corr_name]
+                
+                # Sort by date (ascending)
+                corr_docs.sort(key=lambda doc: doc["created_date"])
+                
+                for doc in corr_docs:
+                    writer.writerow([
+                        storage_box,
+                        corr_name,
+                        doc["created_date"],
+                        doc["title"],
+                        doc["archive_serial_number"]
+                    ])
+        
+        filenames.append(filename)
+        print(f"Storage box list (by correspondent) exported to {filename}")
+    
+    return filenames
+
+def export_storage_box_by_asn(grouped_by_custom_field, correspondents, asn_from, asn_to):
+    """
+    Exports one list per storage box, sorted by ASN.
+    """
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filenames = []
+    
+    # Sort storage boxes alphabetically (case-insensitive)
+    for storage_box in sorted(grouped_by_custom_field.keys(), key=lambda x: x.lower()):
+        docs = grouped_by_custom_field[storage_box]
+        
+        # Find min and max ASN in this storage box
+        min_asn = min([int(doc["archive_serial_number"]) for doc in docs])
+        max_asn = max([int(doc["archive_serial_number"]) for doc in docs])
+        
+        filename = f"{timestamp}_{storage_box}_grouped_by_ASN_{min_asn}-{max_asn}.csv"
+        
+        with open(filename, mode="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file, delimiter="\t")
+            
+            # Write header row
+            writer.writerow(["StorageBox", "ASN", "Correspondent", "Title", "Date"])
+            
+            # Sort by ASN (ascending)
+            docs.sort(key=lambda doc: int(doc["archive_serial_number"]))
+            
+            for doc in docs:
+                correspondent_name = correspondents.get(doc["correspondent"], "Unknown")
+                writer.writerow([
+                    storage_box,
+                    doc["archive_serial_number"],
+                    correspondent_name,
+                    doc["title"],
+                    doc["created_date"]
+                ])
+        
+        filenames.append(filename)
+        print(f"Storage box list (by ASN) exported to {filename}")
+    
+    return filenames
 
 if __name__ == "__main__":
     # Define ASN range and grouping options
     ASN_FROM = 1  # Minimum ASN value
     ASN_TO = 999  # Maximum ASN value
-    CUSTOM_FIELD_ID = 3  # Custom field ID for Lagerort
+    CUSTOM_FIELD_ID = 3  # Custom field ID for StorageBox
 
     try:
-        # Fetch possible labels for Lagerort
-        lagerort_label_mapping = fetch_custom_field_labels(CUSTOM_FIELD_ID)
+        # Fetch possible labels for StorageBox
+        storage_box_label_mapping = fetch_custom_field_labels(CUSTOM_FIELD_ID)
 
         # Fetch correspondents and filtered documents by ASN range
         correspondents_map = fetch_correspondents()
         filtered_documents_list = fetch_documents(ASN_FROM, ASN_TO)
 
-        # Group by Lagerort (custom field)
-        primary_grouped_docs = group_documents_by_custom_field(filtered_documents_list, CUSTOM_FIELD_ID, lagerort_label_mapping)
+        # Group by StorageBox (custom field)
+        primary_grouped_docs = group_documents_by_custom_field(filtered_documents_list, CUSTOM_FIELD_ID, storage_box_label_mapping)
 
-        # Export results to CSV
-        export_to_csv(primary_grouped_docs, correspondents_map, "ASN", ASN_FROM, ASN_TO)
-        export_to_csv(primary_grouped_docs, correspondents_map, "Correspondent", ASN_FROM, ASN_TO)
+        # Export all three list types
+        export_correspondents_list(primary_grouped_docs, correspondents_map, ASN_FROM, ASN_TO)
+        export_storage_box_by_correspondent(primary_grouped_docs, correspondents_map, ASN_FROM, ASN_TO)
+        export_storage_box_by_asn(primary_grouped_docs, correspondents_map, ASN_FROM, ASN_TO)
     
     except Exception as e:
         print(f"Error: {e}")
