@@ -164,14 +164,14 @@ def export_to_csv(grouped_by_custom_field, correspondents, secondary_group_by, a
     with open(filename, mode="w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file, delimiter="\t")
 
-        # Write header row
-        writer.writerow(["Lagerort", "ASN", "Correspondent", "Title", "Date"])
-
         # Sort Lagerort groups alphabetically (case-insensitive) and iterate
         for group_key in sorted(grouped_by_custom_field.keys(), key=lambda x: x.lower()):
             docs = grouped_by_custom_field[group_key]
 
             if secondary_group_by == "ASN":
+                # Write header row
+                writer.writerow(["Lagerort", "ASN", "Correspondent", "Title", "Date"])
+                
                 # Sort documents by ASN
                 docs.sort(key=lambda doc: int(doc["archive_serial_number"]))
                 for doc in docs:
@@ -184,6 +184,9 @@ def export_to_csv(grouped_by_custom_field, correspondents, secondary_group_by, a
                         doc["created_date"]
                     ])
             elif secondary_group_by == "Correspondent":
+                # Write header row
+                writer.writerow(["Lagerort", "Correspondent", "Date", "Title", "ASN"])
+
                 # Group documents by Correspondent within Lagerort
                 grouped_within_custom_field = group_within_custom_field(docs, correspondents, secondary_group_by)
 
@@ -191,16 +194,16 @@ def export_to_csv(grouped_by_custom_field, correspondents, secondary_group_by, a
                 for sub_group_key in sorted(grouped_within_custom_field.keys(), key=lambda x: x.lower()):
                     sub_docs = grouped_within_custom_field[sub_group_key]
 
-                    # Sort documents within each correspondent group by ASN
-                    sub_docs.sort(key=lambda doc: int(doc["archive_serial_number"]))
+                    # Sort documents within each correspondent group by created date
+                    sub_docs.sort(key=lambda doc: doc["created_date"])
                     
                     for doc in sub_docs:
                         writer.writerow([
                             group_key,
-                            doc["archive_serial_number"],
                             sub_group_key,  # Correspondent name
+                            doc["created_date"],
                             doc["title"],
-                            doc["created_date"]
+                            doc["archive_serial_number"]
                         ])
 
     print(f"Data exported to {filename}")
@@ -210,9 +213,8 @@ def export_to_csv(grouped_by_custom_field, correspondents, secondary_group_by, a
 if __name__ == "__main__":
     # Define ASN range and grouping options
     ASN_FROM = 1  # Minimum ASN value
-    ASN_TO = 671  # Maximum ASN value
+    ASN_TO = 999  # Maximum ASN value
     CUSTOM_FIELD_ID = 3  # Custom field ID for Lagerort
-    SECONDARY_GROUP_BY_FIELD = "Correspondent"  # Options: "Correspondent", "ASN"
 
     try:
         # Fetch possible labels for Lagerort
@@ -226,7 +228,8 @@ if __name__ == "__main__":
         primary_grouped_docs = group_documents_by_custom_field(filtered_documents_list, CUSTOM_FIELD_ID, lagerort_label_mapping)
 
         # Export results to CSV
-        export_to_csv(primary_grouped_docs, correspondents_map, SECONDARY_GROUP_BY_FIELD, ASN_FROM, ASN_TO)
+        export_to_csv(primary_grouped_docs, correspondents_map, "ASN", ASN_FROM, ASN_TO)
+        export_to_csv(primary_grouped_docs, correspondents_map, "Correspondent", ASN_FROM, ASN_TO)
     
     except Exception as e:
         print(f"Error: {e}")
