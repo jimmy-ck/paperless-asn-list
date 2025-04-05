@@ -1,11 +1,11 @@
 # Paperless ASN List Exporter
 
-This Python script interacts with the [Paperless-ngx API](https://docs.paperless-ngx.com/api/) to fetch documents within a specified ASN range, group them by custom fields (e.g., "Lagerort"), and export the results to a tab-separated CSV file.
+This Python script interacts with the [Paperless-ngx API](https://docs.paperless-ngx.com/api/) to fetch documents within a specified ASN range, group them by custom fields (e.g., "StorageBox"), and export the results to a tab-separated CSV file.
 
 ## Features
 
 - Fetches documents from Paperless-ngx within a specified ASN range.
-- Groups documents by a custom field (e.g., "Lagerort").
+- Groups documents by a custom field (e.g., "StorageBox").
 - Supports secondary grouping by either correspondents or ASNs.
 - Sorts groups alphabetically (case-insensitive) and ASNs numerically.
 - Exports the grouped data to a dynamically named CSV file.
@@ -56,14 +56,14 @@ The following parameters can be adjusted in the script:
 |----------------------------|-----------------------------------------------------------------------------|-------------------|
 | `ASN_FROM`                 | Minimum ASN value to query documents from                                   | 1                 |
 | `ASN_TO`                   | Maximum ASN value to query documents up to                                  | 671               |
-| `CUSTOM_FIELD_ID`          | ID of the custom field used for primary grouping (e.g., "Storage box")      | 3                 |
+| `CUSTOM_FIELD_ID`          | ID of the custom field used for primary grouping (e.g., "StorageBox")      | 3                 |
 | `SECONDARY_GROUP_BY_FIELD` | Field used for secondary grouping (`"Correspondent"` or `"ASN"`)            | `"Correspondent"` |
 
 ## Output
 
 The script generates a tab-separated CSV file with the following columns:
 
-1. **Storage Box**: The custom field label (e.g., "Box 1").
+1. **StorageBox**: The custom field label (e.g., "Box 1").
 2. **ASN**: Archive Serial Number of the document.
 3. **Correspondent**: Name of the correspondent associated with the document.
 4. **Title**: Title of the document.
@@ -71,13 +71,13 @@ The script generates a tab-separated CSV file with the following columns:
 
 The CSV filename is dynamically generated based on the timestamp, ASN range, and grouping logic, e.g.:
     ```
-    20250405_161700_Lagerort_grouped_by_Correspondent_ASN_1-671.csv
+    20250405_161700_StorageBox_grouped_by_Correspondent_ASN_1-671.csv
     ```
 
 ### Example Output
 
-#### Grouped by Storage box → Correspondent → ASN:
-| Lagerort | ASN  | Correspondent  | Title         | Date       |
+#### Grouped by StorageBox → Correspondent → ASN:
+| StorageBox | ASN  | Correspondent  | Title         | Date       |
 |----------|------|----------------|---------------|------------|
 | Box 1    | 102  | Alice Corp     | Receipt Feb   | 2025-02-01 |
 | Box 1    | 101  | Alice Corp     | Invoice Jan   | 2025-01-01 |
