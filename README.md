@@ -1,17 +1,17 @@
 # Paperless ASN List Exporter
 
-This Python script interacts with the [Paperless-ngx API](https://docs.paperless-ngx.com/api/) to fetch documents within a specified ASN range, group them by custom fields (e.g., "StorageBox"), and export the results to a tab-separated CSV file.
+This Python script interacts with the [Paperless-ngx API](https://docs.paperless-ngx.com/api/) to fetch documents within a specified ASN range, group them by custom fields (e.g., "StorageBox"), and export the results to tab-separated CSV files.
 
 ## Features
 
-- Fetches documents from a selfhosted Paperless-ngx instance within a specified ASN range.
+- Fetches documents from a self-hosted Paperless-ngx instance, with customizable ASN range and custom field ID via command-line arguments.
 - Groups documents by a custom field (e.g., "StorageBox").
 - Groups by correspondents and ASNs with specific sorting into three separate lists for easy physical retrieval of your documents in case of a server breakdown.
-- Exports the grouped data to a dynamically named CSV files, which can be printed out.
+- Exports the grouped data to dynamically named CSV files, which can be printed out.
 
 ## Prerequisites
 
-- **This script currently assumes a prepopulated custom data field in your Paperless-ngx instance configured as field type `select`, which is used to document physical storage location of documents** (please refer to [Paperless-ngx Basic Usage](https://docs.paperless-ngx.com/usage/#custom-fields))
+- **This script currently assumes a prepopulated custom data field in your Paperless-ngx instance configured as field type `select`, which is used to document the physical storage location of documents** (please refer to [Paperless-ngx Basic Usage](https://docs.paperless-ngx.com/usage/#custom-fields))
 - Python 3.6 or later
 - Paperless-ngx instance with API access enabled
 - Virtual environment (`venv`) for dependency management
@@ -44,33 +44,35 @@ This Python script interacts with the [Paperless-ngx API](https://docs.paperless
 
 5. Run the script:
     ```
-    python main.py
+    python main.py 
+    ```
+    or
+    ```
+    python main.py --asn_from 123 --asn_to 255 --custom_field_id 1
     ```
 
 ## Parameters
 
-The following parameters can be adjusted in the script:
+The following parameters can be attached as command line arguments:
 
-| Parameter                  | Description                                                                 | Preset Value     |
+| CLI argument                  | Description                                                                 | Default Value     |
 |----------------------------|-----------------------------------------------------------------------------|-------------------|
-| `ASN_FROM`                 | Minimum ASN value to query documents from                                   | 1                 |
-| `ASN_TO`                   | Maximum ASN value to query documents up to                                  | 999               |
-| `CUSTOM_FIELD_ID`          | ID of the custom field used for primary grouping (e.g., "StorageBox")       | 3                 |
+| `--asn_from`                 | Minimum ASN value to query documents from                                   | 1                 |
+| `--asn_to`                   | Maximum ASN value to query documents up to                                  | 9999               |
+| `--custom_field_id`          | ID of the custom field used for primary grouping (e.g., "StorageBox")       | 3                 |
 
 ## Output lists
 
 This script generates three tab-separated CSV files with the following columns.
-The idea behind these lists is to physically attach it to containers/boxes of documents. In case of a breakdown of your Paperless-ngx instance you should be able to look up where a specific document resides in this box – all analogue.
+The idea behind these lists is to physically attach it to containers/boxes of documents. In case of a breakdown of your Paperless-ngx instance, you should be able to look up where a specific document resides in this box – all analogue.
 
 ### Correspondents → to look up storage box and ASN
 
-> In which box is my document? And what is it's ASN = location? 
+> In which box is my document? And what is its ASN = location? 
 
 Outputs one list for all correspondents assigned to documents which have an ASN: `20250405_161700_grouped_by_Correspondent_ASN_1-275.csv`
 
-
-
-This list allows you to identify a document of interest by scrolling through the correspondents list, narrowing down the date and looking up the storage box where you document resides in. Noting the ASN you can directly find it in this specific box, since it should physically be sorted by ASN.
+This list allows you to identify a document of interest by scrolling through the correspondents list, narrowing down the date and looking up the storage box where your document resides. Noting the ASN, you can directly find it in this specific box, since it should physically be sorted by ASN.
 
 #### Example output
 *"↓" are displayed in doc for illustrative purposes only*
@@ -101,7 +103,7 @@ Outputs $n$ lists for $n$ storage boxes.
 20250405_161700_Box3_grouped_by_Correspondent_ASN_256-275.csv
 ```
 
-These lists allow you to identify a document of interest which is known to be in the corresponding box by scrolling through the correspondents list, narrowing down the date and looking up the ASN of your document. Since your box should physically be sorted by ASN it is easy to locate the document.
+These lists allow you to identify a document of interest which is known to be in the corresponding box by scrolling through the correspondents list, narrowing down the date and looking up the ASN of your document. Since your box should physically be sorted by ASN, it is easy to locate the document.
 
 #### Example output
 *"↓" are displayed in doc for illustrative purposes only*
@@ -121,7 +123,7 @@ These lists allow you to identify a document of interest which is known to be in
 | Box 2        | Charlie Ltd.    | 2025-04-01 | Report Apr    | 3   |
 | Box 2        | Charlie Ltd.    | 2025-05-01 | Memo May      | 5   |
 
-### Storage box (ASN) → to see whats in a specific box
+### Storage box (ASN) → to see what's in a specific box
 > What is in this box? 
 
 Outputs $n$ lists for $n$ storage boxes.
@@ -131,7 +133,7 @@ Outputs $n$ lists for $n$ storage boxes.
 20250405_161700_Box3_grouped_by_ASN_256-275.csv
 ```
 
-This list is a simple ASN-sorted list of a boxes content. It just reflects the physical sorting of the actual box.
+This list is a simple ASN-sorted list of a box's content. It just reflects the physical sorting of the actual box.
 
 #### Example output
 *"↓" are displayed in doc for illustrative purposes only*
