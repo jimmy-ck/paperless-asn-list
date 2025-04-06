@@ -21,14 +21,19 @@ def fetch_custom_field_labels(custom_field_id):
     Returns:
         dict: Mapping of value IDs to their labels.
     """
-    custom_field_url = f"{API_URL}/custom_fields/{custom_field_id}/"
+    custom_field_url = f"{API_URL}/custom_fields/{custom_field_id}/"  # URL to fetch custom field labels
+    print(f"Fetching custom field labels from: {custom_field_url}")  # Debug output
     response = requests.get(custom_field_url, headers=HEADERS)
     if response.status_code != 200:
         raise Exception(f"Failed to fetch custom field labels: {response.text}")
-    
     content = response.json()
+    print(f"Response content: {content}")  # Debug output
     select_options = content.get("extra_data", {}).get("select_options", [])
-    return {option["id"]: option["label"] for option in select_options}
+    # Return the custom field name along with the select options
+    return {
+        "name": content["name"],  # Get the custom field name
+        "options": {option["id"]: option["label"] for option in select_options}
+    }
 
 
 def fetch_correspondents():
@@ -84,7 +89,7 @@ def fetch_documents(asn_from, asn_to):
     return documents
 
 
-def group_documents_by_custom_field(documents, custom_field_id, label_mapping):
+def group_documents_by_custom_field(documents, custom_field_name, custom_field_id, label_mapping):
     """
     Groups documents by a specified custom field label.
 
@@ -105,7 +110,7 @@ def group_documents_by_custom_field(documents, custom_field_id, label_mapping):
         
         for field in custom_fields:
             if field["field"] == custom_field_id:
-                group_key = label_mapping.get(field["value"], "Unknown")
+                group_key = label_mapping["options"].get(field["value"], "Unknown")
                 break
 
         if group_key not in grouped_documents:
@@ -199,7 +204,7 @@ def export_correspondents_list(grouped_by_custom_field, correspondents, asn_from
     return filename
 
 
-def export_storage_box_by_correspondent(grouped_by_custom_field, correspondents, asn_from, asn_to):
+def export_storage_box_by_correspondent(custom_field_name, grouped_by_custom_field, correspondents, asn_from, asn_to):
     """
     Exports one list per storage box, grouped by correspondent and sorted by date.
     """
@@ -220,7 +225,7 @@ def export_storage_box_by_correspondent(grouped_by_custom_field, correspondents,
             writer = csv.writer(file, delimiter="\t")
             
             # Write header row
-            writer.writerow(["StorageBox", "Correspondent", "Date", "Title", "ASN"])
+            writer.writerow([custom_field_name, "Correspondent", "Date", "Title", "ASN"])
             
             # Group by correspondent
             correspondent_groups = {}
@@ -251,7 +256,7 @@ def export_storage_box_by_correspondent(grouped_by_custom_field, correspondents,
     
     return filenames
 
-def export_storage_box_by_asn(grouped_by_custom_field, correspondents, asn_from, asn_to):
+def export_storage_box_by_asn(custom_field_name, grouped_by_custom_field, correspondents, asn_from, asn_to):
     """
     Exports one list per storage box, sorted by ASN.
     """
@@ -272,7 +277,7 @@ def export_storage_box_by_asn(grouped_by_custom_field, correspondents, asn_from,
             writer = csv.writer(file, delimiter="\t")
             
             # Write header row
-            writer.writerow(["StorageBox", "ASN", "Correspondent", "Title", "Date"])
+            writer.writerow([custom_field_name, "ASN", "Correspondent", "Title", "Date"])
             
             # Sort by ASN (ascending)
             docs.sort(key=lambda doc: int(doc["archive_serial_number"]))
@@ -309,12 +314,12 @@ if __name__ == "__main__":
         filtered_documents_list = fetch_documents(args.asn_from, args.asn_to)
 
         # Group by StorageBox (custom field)
-        primary_grouped_docs = group_documents_by_custom_field(filtered_documents_list, args.custom_field_id, storage_box_label_mapping)
+        primary_grouped_docs = group_documents_by_custom_field(filtered_documents_list, storage_box_label_mapping["name"], args.custom_field_id, storage_box_label_mapping)
 
         # Export all three list types
         export_correspondents_list(primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
-        export_storage_box_by_correspondent(primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
-        export_storage_box_by_asn(primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
+        export_storage_box_by_correspondent(storage_box_label_mapping["name"], primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
+        export_storage_box_by_asn(storage_box_label_mapping["name"], primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
     
     except Exception as e:
         print(f"Error: {e}")
