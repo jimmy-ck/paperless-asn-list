@@ -1,6 +1,8 @@
 import csv
 from datetime import datetime
 import requests
+import argparse
+
 # Import credentials
 from credentials import API_URL, API_TOKEN
 
@@ -292,25 +294,27 @@ def export_storage_box_by_asn(grouped_by_custom_field, correspondents, asn_from,
 
 if __name__ == "__main__":
     # Define ASN range and grouping options
-    ASN_FROM = 1  # Minimum ASN value
-    ASN_TO = 999  # Maximum ASN value
-    CUSTOM_FIELD_ID = 3  # Custom field ID for StorageBox
+    parser = argparse.ArgumentParser(description='Process ASN and Custom Field ID.')
+    parser.add_argument('--asn_from', type=int, default=1, help='Minimum ASN value (default: 1)')
+    parser.add_argument('--asn_to', type=int, default=9999, help='Maximum ASN value (default: 9999)')
+    parser.add_argument('--custom_field_id', type=int, default=3, help='Custom field ID for StorageBox (default: 3)')
+    args = parser.parse_args()
 
     try:
         # Fetch possible labels for StorageBox
-        storage_box_label_mapping = fetch_custom_field_labels(CUSTOM_FIELD_ID)
+        storage_box_label_mapping = fetch_custom_field_labels(args.custom_field_id)
 
         # Fetch correspondents and filtered documents by ASN range
         correspondents_map = fetch_correspondents()
-        filtered_documents_list = fetch_documents(ASN_FROM, ASN_TO)
+        filtered_documents_list = fetch_documents(args.asn_from, args.asn_to)
 
         # Group by StorageBox (custom field)
-        primary_grouped_docs = group_documents_by_custom_field(filtered_documents_list, CUSTOM_FIELD_ID, storage_box_label_mapping)
+        primary_grouped_docs = group_documents_by_custom_field(filtered_documents_list, args.custom_field_id, storage_box_label_mapping)
 
         # Export all three list types
-        export_correspondents_list(primary_grouped_docs, correspondents_map, ASN_FROM, ASN_TO)
-        export_storage_box_by_correspondent(primary_grouped_docs, correspondents_map, ASN_FROM, ASN_TO)
-        export_storage_box_by_asn(primary_grouped_docs, correspondents_map, ASN_FROM, ASN_TO)
+        export_correspondents_list(primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
+        export_storage_box_by_correspondent(primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
+        export_storage_box_by_asn(primary_grouped_docs, correspondents_map, args.asn_from, args.asn_to)
     
     except Exception as e:
         print(f"Error: {e}")
