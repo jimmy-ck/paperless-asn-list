@@ -1,12 +1,7 @@
 # .gitignore
 
 __pycache__/
-
-# Ignore credentials
 credentials.py
-
-# Ignore virtual environments
 .venv/
-
-# Ignore exported CSV files
 *.csv
+.DS_Store
