@@ -6,12 +6,15 @@ This Python script interacts with the [Paperless-ngx API](https://docs.paperless
 
 - Fetches documents from a self-hosted Paperless-ngx instance, with customizable ASN range and custom field ID via command-line arguments.
 - Groups documents by a custom field (e.g., "StorageBox").
-- Groups by correspondents and ASNs with specific sorting into three separate lists for easy physical retrieval of your documents in case of a server breakdown.
-- Exports the grouped data to dynamically named CSV files, which can be printed out.
+- Sorts and outputs documents in three different list formats:
+  1. **Grouped by Correspondent & ASN** (across all boxes)
+  2. **Grouped by Storage Box → Correspondent & ASN**
+  3. **Grouped by Storage Box → ASN**
+- Exports the grouped data to dynamically named CSV files, which can be printed out for easy physical locating of your documents in case of a server breakdown.
 
 ## Prerequisites
 
-- **This script currently assumes a prepopulated custom data field in your Paperless-ngx instance configured as field type `select`, which is used to document the physical storage location of documents** (please refer to [Paperless-ngx Basic Usage](https://docs.paperless-ngx.com/usage/#custom-fields))
+- **Your Paperless-ngx instance should use a custom `select`-type field for document storage location (e.g., "StorageBox"). If not used please attach CLI argument `--no_custom_field`.** The author of this script uses a `select`-type field containg different storage locations like `Amanda Box 1`, `Amanda Box 2` and `Brian Box 1`. Please refer to [Paperless-ngx Custom Fields](https://docs.paperless-ngx.com/usage/#custom-fields) for setting thos up.
 - Python 3.6 or later
 - Paperless-ngx instance with API access enabled
 - Virtual environment (`venv`) for dependency management
@@ -19,36 +22,40 @@ This Python script interacts with the [Paperless-ngx API](https://docs.paperless
 ## Setup Instructions
 
 1. Clone this repository:
-    ```
+    ```bash
     git clone https://github.com/jimmy-ck/paperless-asn-list.git
     cd paperless-asn-list
     ```
 
 2. Create and activate a virtual environment:
-    ```
+    ```bash
     python3 -m venv .venv
     source .venv/bin/activate  # On Windows: .venv\Scripts\activate
     ```
 
 3. Install dependencies:
-    ```
+    ```bash
     pip install -r requirements.txt
     ```
 
 4. Create a `credentials.py` file (excluded from Git):
-    ```
+    ```bash
     # credentials.py
     API_URL = "http://your-paperless-instance:port-number/api"
     API_TOKEN = "your_api_token_here"
     ```
 
 5. Run the script:
-    ```
+    ```bash
     python main.py 
     ```
     or
-    ```
+    ```bash
     python main.py --asn_from 123 --asn_to 255 --custom_field_id 1
+    ```
+    or to deactivate grouping by custom field:
+    ```bash
+    python main.py --asn_from 123 --asn_to 255 --no_custom_field
     ```
 
 ## Parameters
@@ -60,13 +67,14 @@ The following parameters can be attached as command line arguments:
 | `--asn_from`                 | Minimum ASN value to query documents from                                   | 1                 |
 | `--asn_to`                   | Maximum ASN value to query documents up to                                  | 9999               |
 | `--custom_field_id`          | ID of the custom field used for primary grouping (e.g., "StorageBox")       | 3                 |
+| `--no_custom_field`          | Deactivate grouping by custom field                                         | False              |
 
 ## Output lists
 
 This script generates three tab-separated CSV files with the following columns.
 The idea behind these lists is to physically attach it to containers/boxes of documents. In case of a breakdown of your Paperless-ngx instance, you should be able to look up where a specific document resides in this box – all analogue.
 
-### Correspondents → to look up storage box and ASN
+### 1. Correspondents → to look up storage box and ASN
 
 > In which box is my document? And what is its ASN = location? 
 
@@ -92,7 +100,7 @@ This list allows you to identify a document of interest by scrolling through the
 | Charlie Ltd.    | 2025-04-01 | Report Apr    | Box 2      | 3    |
 | Charlie Ltd.    | 2025-05-01 | Memo May      | Box 2      | 5    |
 
-### Storage box (correspondents) → to look up ASN in a specific storage box
+### 2. Storage box (correspondents) → to look up ASN in a specific storage box
 
 > My document is in this box: What is the document's ASN = location?
 
@@ -123,7 +131,7 @@ These lists allow you to identify a document of interest which is known to be in
 | Box 2        | Charlie Ltd.    | 2025-04-01 | Report Apr    | 3   |
 | Box 2        | Charlie Ltd.    | 2025-05-01 | Memo May      | 5   |
 
-### Storage box (ASN) → to see what's in a specific box
+### 3. Storage box (ASN) → to see what's in a specific box
 > What is in this box? 
 
 Outputs $n$ lists for $n$ storage boxes.
