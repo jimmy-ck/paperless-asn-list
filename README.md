@@ -1,6 +1,7 @@
 # Paperless ASN List Exporter
 
 This Python script interacts with the [Paperless-ngx API](https://docs.paperless-ngx.com/api/) to fetch documents within a specified ASN range, group them by custom fields (e.g., "StorageBox"), and export the results to tab-separated CSV files.
+This script is inspired by https://github.com/lxndio/paperless-asn-index.
 
 ## Features
 
