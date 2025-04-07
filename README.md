@@ -15,7 +15,7 @@ This script is inspired by https://github.com/lxndio/paperless-asn-index.
 
 ## Prerequisites
 
-- **Your Paperless-ngx instance should use a custom `select`-type field for document storage location (e.g., "StorageBox"). If not used please attach CLI argument `--no_custom_field`.** The author of this script uses a `select`-type field containg different storage locations like `Amanda Box 1`, `Amanda Box 2` and `Brian Box 1`. Please refer to [Paperless-ngx Custom Fields](https://docs.paperless-ngx.com/usage/#custom-fields) for setting thos up.
+- **Your Paperless-ngx instance should use a custom `select`-type field for document storage location (e.g., "StorageBox"). If not used please attach the command line argument `--no_custom_field`.** The author of this script uses a `select`-type field containg different storage locations like `Amanda Box 1`, `Amanda Box 2` and `Brian Box 1`. Please refer to [Paperless-ngx Custom Fields](https://docs.paperless-ngx.com/usage/#custom-fields) for setting thos up.
 - Python 3.6 or later
 - Paperless-ngx instance with API access enabled
 - Virtual environment (`venv`) for dependency management
@@ -84,13 +84,14 @@ Outputs one list for all correspondents assigned to documents which have an ASN:
 This list allows you to identify a document of interest by scrolling through the correspondents list, narrowing down the date and looking up the storage box where your document resides. Noting the ASN, you can directly find it in this specific box, since it should physically be sorted by ASN.
 
 #### Example output
-*"↓" are displayed in doc for illustrative purposes only*
 
 1. **Correspondent**: Grouped and sorted case-insensitive alphabetically. Name of the correspondent associated with the document.
 2. **Date**: Creation date of the document. Sorted old to new.
 3. **Title**: Title of the document.
 4. **StorageBox**: The custom field label (e.g., "Box 1").
 5. **ASN**: Archive Serial Number of the document.
+
+*"↓" are displayed in documentation for illustrative purposes only*
 
 | Correspondent ↓ | Date ↓     | Title         | StorageBox | ASN  |
 |-----------------|------------|---------------|------------|------|
@@ -115,13 +116,14 @@ Outputs $n$ lists for $n$ storage boxes.
 These lists allow you to identify a document of interest which is known to be in the corresponding box by scrolling through the correspondents list, narrowing down the date and looking up the ASN of your document. Since your box should physically be sorted by ASN, it is easy to locate the document.
 
 #### Example output
-*"↓" are displayed in doc for illustrative purposes only*
 
 1. **StorageBox**: Grouped and sorted case-insensitive alphabetically. The custom field label (e.g., "Box 1").
 2. **Correspondent**: Grouped and sorted case-insensitive alphabetically. Name of the correspondent associated with the document.
 3. **Date**: Creation date of the document. Sorted old to new.
 4. **Title**: Title of the document.
 5. **ASN**: Archive Serial Number of the document.
+
+*"↓" are displayed in documentation for illustrative purposes only*
 
 | StorageBox ↓ | Correspondent ↓ | Date ↓     | Title         | ASN |
 |--------------|-----------------|------------|---------------|-----|
@@ -145,13 +147,14 @@ Outputs $n$ lists for $n$ storage boxes.
 This list is a simple ASN-sorted list of a box's content. It just reflects the physical sorting of the actual box.
 
 #### Example output
-*"↓" are displayed in doc for illustrative purposes only*
 
 1. **StorageBox**: Grouped and sorted case-insensitive alphabetically. The custom field label (e.g., "Box 1").
 2. **ASN**: Archive Serial Number of the document. Sorted ascending.
 3. **Correspondent**: Name of the correspondent associated with the document.
 4. **Title**: Title of the document.
 5. **Date**: Creation date of the document.
+
+*"↓" are displayed in documentation for illustrative purposes only*
 
 | StorageBox ↓ | ASN ↓ | Correspondent  | Title         | Date       |
 |--------------|-------|----------------|---------------|------------|
