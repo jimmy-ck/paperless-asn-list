@@ -95,7 +95,14 @@ def group_documents_by_custom_field(documents, custom_field_name, custom_field_i
         group_key = "Unknown"
         for field in custom_fields:
             if field["field"] == custom_field_id:
-                group_key = label_mapping["options"].get(field["value"], "Unknown")
+                value = field.get("value")
+                if value in (None, ""):
+                    group_key = "Unknown"
+                else:
+                    if label_mapping.get("options"):
+                        group_key = label_mapping["options"].get(value, str(value))
+                    else:
+                        group_key = str(value)
                 break
         grouped_documents.setdefault(group_key, []).append(document)
     return grouped_documents
