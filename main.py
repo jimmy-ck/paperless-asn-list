@@ -120,7 +120,7 @@ def export_correspondent_documents_list(grouped_by_custom_field, correspondents,
         writer.writerow([
             "Correspondent",
             "Date", "Title",
-            *(custom_field_name if is_grouped else []),
+            *([custom_field_name] if is_grouped else []),
             "ASN"])
         all_docs = []
         
